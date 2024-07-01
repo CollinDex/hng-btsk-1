@@ -36,8 +36,12 @@ app.get('/api/hello/:visitor_name', async (req, res) => {
         //Clean up IPv6 address format
         if (client_ip.includes('::ffff:')) {
             client_ip = client_ip.split('::ffff:')[1];
-        } else if (client_ip === '127.0.0.1') {
-            client_ip = '8.8.8.8';
+        };  
+        
+        if (client_ip === '127.0.0.1') {
+            const apiData = await axios.get('http://ip-api.com/json/');
+            const {query} = apiData.data;
+            client_ip = query;
         };
 
         console.log("IP ADRESS", client_ip);
