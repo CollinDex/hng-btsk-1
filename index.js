@@ -20,30 +20,39 @@ app.listen(PORT, () => {
 
 //API GET
 app.get('/', (req, res) => {
-    res.send('Hello From Node Api');
+    //Get Client IP
+    let client_ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    res.send(`Hello From Node Api, your ip is ${client_ip}`);
 });
 
 //API GET 
 app.get('/api/hello/:visitor_name', async (req, res) => {
     try {
-        const { visitor_name } = req.params;
+        const { visitor_name } = req.params;      
 
-        //Get Client IP and CITY
-        const locationResponse = await axios.get(`http://ip-api.com/json/`);
-        const { query: ip, city: city } = locationResponse.data;
+        //Get Client IP
+        let client_ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+        //Clean up IPv6 address format
+        if (client_ip.includes('::ffff:')) {
+            client_ip = client_ip.split('::ffff:')[1];
+        } else if (client_ip === '127.0.0.1') {
+            client_ip = '8.8.8.8';
+        };
         
-        console.log("IP ADRESS", ip);
-        console.log("API_KEY", API_KEY);        
+        console.log("IP ADRESS", client_ip);
+        console.log("API_KEY", API_KEY);
 
         //Get location from geolocation api
-        const weatherResponse = await axios.get(`${baseUrl}/current.json?key=3ee659f3b5ce45a1b0681059240107&q=${city}`);
-        const { current } = weatherResponse.data;
+        const weatherResponse = await axios.get(`${baseUrl}/current.json?key=3ee659f3b5ce45a1b0681059240107&q=${client_ip}`);
+        const { location, current } = weatherResponse.data;
+        const { name: city } = location;
         const { temp_c: temperature } = current;
         const greeting = `Hello, ${visitor_name}! The temperature is ${temperature} degrees Celsius in ${city}`;
 
         // Send the response
         res.status(200).json({
-            client_ip: ip,
+            client_ip: client_ip,
             location: city,
             greeting: greeting
         });
