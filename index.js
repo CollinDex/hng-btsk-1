@@ -39,14 +39,17 @@ app.get('/api/hello/:visitor_name', async (req, res) => {
         } else if (client_ip === '127.0.0.1') {
             client_ip = '8.8.8.8';
         };
-        
+
         console.log("IP ADRESS", client_ip);
         console.log("API_KEY", API_KEY);
 
         //Get location from geolocation api
-        const weatherResponse = await axios.get(`${baseUrl}/current.json?key=3ee659f3b5ce45a1b0681059240107&q=${client_ip}`);
+        const locationResponse = await axios.get(`http://ip-api.com/json/${client_ip}`);
+        const { city: city } = locationResponse.data;
+        console.log(city);
+
+        const weatherResponse = await axios.get(`${baseUrl}/current.json?key=3ee659f3b5ce45a1b0681059240107&q=${city}`);
         const { location, current } = weatherResponse.data;
-        const { name: city } = location;
         const { temp_c: temperature } = current;
         const greeting = `Hello, ${visitor_name}! The temperature is ${temperature} degrees Celsius in ${city}`;
 
